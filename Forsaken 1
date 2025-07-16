@@ -1,40 +1,31 @@
--- Создаем ScreenGui (основной контейнер для элементов на экране)
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NeverScriptDisplay" -- Даем ему уникальное имя
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") -- Привязываем к GUI игрока
+ScreenGui.Name = "NeverHubScriptDisplay" 
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") 
 
--- Создаем TextLabel (текстовую метку)
 local TextLabel = Instance.new("TextLabel")
-TextLabel.Name = "NeverScriptText"
-TextLabel.Parent = ScreenGui -- Делаем TextLabel дочерним элементом ScreenGui
+TextLel.Name = "NeverHubScScriptText"
+TextLabel.Parent = ScreenGui
 
--- Настраиваем свойства TextLabel
-TextLabel.Text = "Never script" -- Сам текст, который будет отображаться
-TextLabel.Size = UDim2.new(0.3, 0, 0.1, 0) -- Размер (30% ширины экрана, 10% высоты)
-TextLabel.Position = UDim2.new(0.35, 0, 0.45, 0) -- Позиция (примерно по центру)
-TextLabel.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Красный фон (пример)
-TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый текст
-TextLabel.Font = Enum.Font.SourceSansBold -- Жирный шрифт
-TextLabel.TextSize = 24 -- Размер текста
-TextLabel.TextScaled = true -- Автоматическое масштабирование текста по размеру метки
-TextLabel.TextStrokeTransparency = 0 -- Обводка текста (0 - нет обводки, 1 - есть)
-TextLabel.ZIndex = 10 -- Убеждаемся, что надпись будет поверх других элементов
-TextLabel.BorderSizePixel = 0 -- Без рамки
+TextLabel.Text = "Never Hub script"
+TextLabel.Size = UDim2.new(0.3, 0, 0.1, 0)
+TextLabel.Position = UDim2.new(0.35, 0, 0.45, 0) 
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 0, 0) 
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255) 
+TextLabel.Font = Enum.Font.SourceSansBold
+TextLabel.TextSize = 24 
+TextLabel.TextScaled = true
+TextLabel.TextStrokeTransparency = 0 
+TextLabel.ZIndex = 10 
+TextLabel.BorderSizePixel = 0 
 
--- * НОВАЯ ЧАСТЬ КОДА: Задержка и удаление *
--- Используем функцию delay (предпочтительнее для эксплойтов, так как не блокирует основной поток)
--- или wait (если delay не работает или вызывает проблемы)
-local delay_time = 3 -- Время в секундах, через которое надпись исчезнет
+local delay_time = 3 
 
 delay(delay_time, function()
-    -- Проверяем, существует ли ScreenGui, прежде чем пытаться его уничтожить
     if ScreenGui and ScreenGui.Parent then
-        ScreenGui:Destroy() -- Удаляем ScreenGui и все его дочерние элементы (TextLabel)
+        ScreenGui:Destroy() 
     end
 end)
 
--- * Код для бесконечной стамины будет идти здесь, после создания GUI *
--- Например:
 while task.wait() do
     local success, errorMsg = pcall(function()
         local Sprinting = game:GetService("ReplicatedStorage").Systems.Character.Game.Sprinting
@@ -42,10 +33,10 @@ while task.wait() do
         
         stamina.MaxStamina = 1000
         stamina.MinStamina = -20
-        stamina.StaminaGain = 1000  -- Быстрое восстановление
-        stamina.StaminaLoss = 0     -- Нет потери стамины
-        stamina.SprintSpeed = 40    -- Увеличенная скорость бега
-        stamina.StaminaLossDisabled = true  -- Отключение потери стамины
+        stamina.StaminaGain = 1000  
+        stamina.StaminaLoss = 0     
+        stamina.SprintSpeed = 40    
+        stamina.StaminaLossDisabled = true  
     end)
     
     if not success then
