@@ -1,54 +1,181 @@
--- Создаем ScreenGui (основной контейнер для элементов на экране)
+-- Проверяем платформу
+local isMobile = game:GetService("UserInputService").TouchEnabled
+
+-- Создаем главный GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NeverScriptDisplay" -- Даем ему уникальное имя
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") -- Привязываем к GUI игрока
+ScreenGui.Name = "NeverScriptUI"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Создаем TextLabel (текстовую метку)
-local TextLabel = Instance.new("TextLabel")
-TextLabel.Name = "NeverScriptText"
-TextLabel.Parent = ScreenGui -- Делаем TextLabel дочерним элементом ScreenGui
+-- Создаем основное окно
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.Size = isMobile and UDim2.new(0.8, 0, 0.4, 0) or UDim2.new(0.25, 0, 0.3, 0)
+MainFrame.Position = isMobile and UDim2.new(0.1, 0, 0.3, 0) or UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = not isMobile -- На мобильных отключаем перетаскивание
 
--- Настраиваем свойства TextLabel
-TextLabel.Text = "Never script" -- Сам текст, который будет отображаться
-TextLabel.Size = UDim2.new(0.3, 0, 0.1, 0) -- Размер (30% ширины экрана, 10% высоты)
-TextLabel.Position = UDim2.new(0.35, 0, 0.45, 0) -- Позиция (примерно по центру)
-TextLabel.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Красный фон (пример)
-TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый текст
-TextLabel.Font = Enum.Font.SourceSansBold -- Жирный шрифт
-TextLabel.TextSize = 24 -- Размер текста
-TextLabel.TextScaled = true -- Автоматическое масштабирование текста по размеру метки
-TextLabel.TextStrokeTransparency = 0 -- Обводка текста (0 - нет обводки, 1 - есть)
-TextLabel.ZIndex = 10 -- Убеждаемся, что надпись будет поверх других элементов
-TextLabel.BorderSizePixel = 0 -- Без рамки
+-- Заголовок окна
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0.15, 0)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Title.Text = "Never Script"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = isMobile and 24 or 20
 
--- * НОВАЯ ЧАСТЬ КОДА: Задержка и удаление *
--- Используем функцию delay (предпочтительнее для эксплойтов, так как не блокирует основной поток)
--- или wait (если delay не работает или вызывает проблемы)
-local delay_time = 3 -- Время в секундах, через которое надпись исчезнет
+-- Кнопка закрытия (только для ПК)
+if not isMobile then
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Parent = Title
+    CloseButton.Size = UDim2.new(0.1, 0, 1, 0)
+    CloseButton.Position = UDim2.new(0.9, 0, 0, 0)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.Font = Enum.Font.SourceSansBold
+    CloseButton.TextSize = 18
 
-delay(delay_time, function()
-    -- Проверяем, существует ли ScreenGui, прежде чем пытаться его уничтожить
-    if ScreenGui and ScreenGui.Parent then
-        ScreenGui:Destroy() -- Удаляем ScreenGui и все его дочерние элементы (TextLabel)
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+end
+
+-- Функция создания кнопок с учетом мобильных устройств
+local function createButton(name, text, positionY, callback)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Parent = MainFrame
+    button.Size = UDim2.new(0.9, 0, 0.15, 0)
+    button.Position = UDim2.new(0.05, 0, positionY, 0)
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = text
+    button.Font = Enum.Font.SourceSans
+    button.TextSize = isMobile and 18 or 16
+    button.TextScaled = isMobile -- Автомасштабирование текста для мобильных
+    
+    -- Увеличиваем область нажатия для мобильных
+    if isMobile then
+        button.BorderSizePixel = 2
+        button.BorderColor3 = Color3.fromRGB(100, 100, 100)
     end
+    
+    button.MouseButton1Click:Connect(callback)
+    
+    return button
+end
+
+-- Переменные для функций
+local infiniteStaminaEnabled = false
+local staminaThread = nil
+
+-- Функция бесконечной стамины
+local function toggleInfiniteStamina()
+    infiniteStaminaEnabled = not infiniteStaminaEnabled
+    
+    if infiniteStaminaEnabled then
+        staminaThread = task.spawn(function()
+            while infiniteStaminaEnabled and task.wait() do
+                pcall(function()
+                    local Sprinting = game:GetService("ReplicatedStorage").Systems.Character.Game.Sprinting
+                    local stamina = require(Sprinting)
+                    
+                    stamina.MaxStamina = 1000
+                    stamina.MinStamina = -20
+                    stamina.StaminaGain = 1000
+                    stamina.StaminaLoss = 0
+                    stamina.SprintSpeed = 40
+                    stamina.StaminaLossDisabled = true
+                end)
+            end
+        end)
+    else
+        if staminaThread then
+            task.cancel(staminaThread)
+            staminaThread = nil
+        end
+    end
+end
+
+-- Создаем кнопки меню
+local staminaButton = createButton("StaminaButton", "Бесконечная стамина: ВЫКЛ", 0.2, function()
+    toggleInfiniteStamina()
+    staminaButton.Text = "Бесконечная стамина: " .. (infiniteStaminaEnabled and "ВКЛ" or "ВЫКЛ")
 end)
 
--- * Код для бесконечной стамины будет идти здесь, после создания GUI *
--- Например:
-while task.wait() do
-    local success, errorMsg = pcall(function()
-        local Sprinting = game:GetService("ReplicatedStorage").Systems.Character.Game.Sprinting
-        local stamina = require(Sprinting)
-        
-        stamina.MaxStamina = 1000
-        stamina.MinStamina = -20
-        stamina.StaminaGain = 1000  -- Быстрое восстановление
-        stamina.StaminaLoss = 0     -- Нет потери стамины
-        stamina.SprintSpeed = 40    -- Увеличенная скорость бега
-        stamina.StaminaLossDisabled = true  -- Отключение потери стамины
+local notificationButton = createButton("NotificationButton", "Показать уведомление", 0.4, function()
+    -- Создаем уведомление
+    local notif = Instance.new("TextLabel")
+    notif.Name = "Notification"
+    notif.Parent = ScreenGui
+    notif.Size = isMobile and UDim2.new(0.6, 0, 0.15, 0) or UDim2.new(0.3, 0, 0.1, 0)
+    notif.Position = isMobile and UDim2.new(0.2, 0, 0.4, 0) or UDim2.new(0.35, 0, 0.45, 0)
+    notif.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notif.Text = "Never script"
+    notif.Font = Enum.Font.SourceSansBold
+    notif.TextSize = isMobile and 28 or 24
+    notif.TextScaled = true
+    notif.TextStrokeTransparency = 0
+    notif.ZIndex = 10
+    notif.BorderSizePixel = 0
+    
+    -- Удаляем через 3 секунды
+    task.delay(3, function()
+        if notif and notif.Parent then
+            notif:Destroy()
+        end
+    end)
+end)
+
+local creditsButton = createButton("CreditsButton", "Автор: Never", 0.6, function()
+    -- Просто показывает информацию об авторе
+    if not isMobile then
+        setclipboard("Never")
+    end
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Never Script",
+        Text = "Автор: Never" .. (not isMobile and " (скопировано в буфер)" or ""),
+        Duration = 3
+    })
+end)
+
+-- Для мобильных устройств добавляем кнопку закрытия внизу
+if isMobile then
+    local mobileCloseButton = createButton("MobileCloseButton", "Закрыть меню", 0.8, function()
+        MainFrame.Visible = false
     end)
     
-    if not success then
-        warn("Ошибка в скрипте:", errorMsg)
-    end
+    -- Кнопка для открытия меню (только для мобильных)
+    local openButton = Instance.new("TextButton")
+    openButton.Name = "OpenMenuButton"
+    openButton.Parent = ScreenGui
+    openButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+    openButton.Position = UDim2.new(0.02, 0, 0.02, 0)
+    openButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    openButton.Text = "Меню"
+    openButton.Font = Enum.Font.SourceSansBold
+    openButton.TextSize = 18
+    openButton.BorderSizePixel = 2
+    openButton.BorderColor3 = Color3.fromRGB(100, 100, 100)
+    
+    openButton.MouseButton1Click:Connect(function()
+        MainFrame.Visible = not MainFrame.Visible
+    end)
+else
+    -- Для ПК добавляем горячую клавишу RightShift
+    local UserInputService = game:GetService("UserInputService")
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
+            MainFrame.Visible = not MainFrame.Visible
+        end
+    end)
 end
