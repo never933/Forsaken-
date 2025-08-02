@@ -1,0 +1,96 @@
+local player = game:GetService("Players").LocalPlayer
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+gui.Name = "NeverHubNotification"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0.3, 0, 0.1, 0)
+frame.Position = UDim2.new(0.7, 0, 0.85, 0)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BackgroundTransparency = 0.3
+frame.BorderSizePixel = 0
+frame.Visible = false
+
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 8)
+
+local textLabel = Instance.new("TextLabel", frame)
+textLabel.Size = UDim2.new(0.9, 0, 0.8, 0)
+textLabel.Position = UDim2.new(0.05, 0, 0.1, 0)
+textLabel.Text = "Never Hub\nПодпишись на наш Telegram!"
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+textLabel.TextScaled = true
+textLabel.Font = Enum.Font.GothamBold
+textLabel.BackgroundTransparency = 1
+textLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local icon = Instance.new("ImageLabel", frame)
+icon.Size = UDim2.new(0.1, 0, 0.7, 0)
+icon.Position = UDim2.new(0.82, 0, 0.15, 0)
+icon.BackgroundTransparency = 1
+icon.Image = "rbxassetid://7072716642" -- Можно заменить на иконку Telegram
+
+-- Функция для копирования ссылки в буфер обмена (если возможно)
+local function copyToClipboard(text)
+    if setclipboard then -- Проверяем, доступна ли функция (в некоторых читах есть)
+        setclipboard(text)
+        return true
+    end
+    return false
+end
+
+-- Функция для показа уведомления
+local function showNotification()
+    frame.Visible = true
+    
+    -- Анимация появления
+    frame.BackgroundTransparency = 0.7
+    textLabel.TextTransparency = 0.7
+    local tween = game:GetService("TweenService"):Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 0.3})
+    local tween2 = game:GetService("TweenService"):Create(textLabel, TweenInfo.new(0.5), {TextTransparency = 0})
+    tween:Play()
+    tween2:Play()
+    
+    -- Копируем ссылку в буфер обмена и выводим в консоль
+    local telegramLink = "https://t.me/NeverS_RobloxRonix" -- Замените на свою ссылку
+    local success = copyToClipboard(telegramLink)
+    
+    if success then
+        print("[Never Hub] Ссылка скопирована: " .. telegramLink)
+    else
+        print("[Never Hub] Не удалось скопировать ссылку автоматически. Вот она: " .. telegramLink)
+    end
+    
+    -- Через 5 секунд скрываем уведомление
+    wait(5)
+    
+    -- Анимация исчезновения
+    tween = game:GetService("TweenService"):Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+    tween2 = game:GetService("TweenService"):Create(textLabel, TweenInfo.new(0.5), {TextTransparency = 1})
+    tween:Play()
+    tween2:Play()
+    
+    tween.Completed:Wait()
+    frame.Visible = false
+end
+
+-- Автоматически вызываем уведомление при запуске скрипта
+showNotification()
+
+while task.wait() do
+    local success, errorMsg = pcall(function()
+        local Sprinting = game:GetService("ReplicatedStorage").Systems.Character.Game.Sprinting
+        local stamina = require(Sprinting)
+        
+        stamina.MaxStamina = 1488
+        stamina.MinStamina = -20
+        stamina.StaminaGain = 1488  -- Быстрое восстановление
+        stamina.StaminaLoss = 0     -- Нет потери стамины
+        stamina.SprintSpeed = 28    -- Увеличенная скорость бега
+        stamina.StaminaLossDisabled = true  -- Отключение потери стамины
+    end)
+    
+    if not success then
+        warn("Ошибка в скрипте:", errorMsg)
+    end
+end
